@@ -7,7 +7,6 @@ mod lib {
 
 fn main() {
     let table = Table::init(1024);
-    println!("{:?}", table);
-    table.get_page(1024);
+    table.get_page(1023);
     println!("Hello, world!");
 }
