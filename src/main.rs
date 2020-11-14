@@ -3,6 +3,7 @@ use crate::lib::table::Table;
 mod lib {
     pub mod table;
     pub mod nru;
+    pub mod vm;
 }
 
 fn main() {

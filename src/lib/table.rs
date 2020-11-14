@@ -30,6 +30,7 @@ impl Table {
         self.table[page_num as usize]
     }
 
+    /// probably useless :(
     fn set_flags(&mut self, page_num: i32, r: i8, m: i8) {
         if (r != 1 && r!= 0) || (m != 2 && m!= 0) {
             dbg!(format!("r = {}, m = {}", r, m));
@@ -37,6 +38,48 @@ impl Table {
         }
         self.check_page(page_num);
         self.table.insert(page_num as usize, r + m);
+    }
+
+    pub fn set_read(&mut self, page_num: i32) {
+        self.check_page(page_num);
+        match self.table[page_num as usize] {
+            1 | 3 => (), // do not modify
+            2 => self.table.insert(page_num as usize, 3), // add read flag
+            _ => self.table.insert(page_num as usize, 0)  // reset corrupted
+        }
+    }
+
+    pub fn set_write(&mut self, page_num: i32) {
+        self.check_page(page_num);
+        match self.table[page_num as usize] {
+            2 | 3 => (), // do not modify
+            1 => self.table.insert(page_num as usize, 3), // add write flag
+            _ => self.table.insert(page_num as usize, 0) // reset corrupted
+        }
+    }
+}
+
+pub struct TableIterator<'a> {
+    table: &'a Table,
+    pos: usize
+}
+
+impl TableIterator<'_> {
+    pub fn get_for(table: &Table) -> TableIterator {
+        TableIterator {table, pos: 0}
+    }
+}
+
+impl Iterator for TableIterator<'_> {
+    type Item = i8;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.pos >= self.table.table.len() {
+            None
+        } else {
+            self.pos += 1;
+            Some(self.table.table[self.pos - 1])
+        }
     }
 }
 
