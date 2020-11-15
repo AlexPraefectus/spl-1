@@ -1,28 +1,26 @@
 use std::cmp::Ordering;
 
-#[derive(Debug)]
 pub struct Table {
-    table: Vec<i8>,
-    page_count: i32,
+    table: Vec<i8>
 }
 
 impl Table {
     fn check_page(&self, page_num: i32) {
-        let to_compare = self.page_count - 1; // indexed from 0
+        let to_compare = self.table.len() as i32 - 1; // indexed from 0
         match page_num.cmp(&to_compare) {
             Ordering::Greater => panic!("page number too big"),
-            _ => dbg!(format!("requested page {} of {}, OK!", page_num, self.page_count))
+            _ => () //dbg!(format!("requested page {} of {}, OK!", page_num, self.page_count))
         };
     }
 
     pub fn init(page_count: i32) -> Table {
         let mut table: Vec<i8> = Vec::new();
         table.resize(page_count as usize, 0);
-        Table { table, page_count }
+        Table { table }
     }
 
     pub fn size(&self) -> i32 {
-        self.page_count
+        self.table.len() as i32
     }
 
     pub fn get_page(&self, page_num: i32) -> i8 {
@@ -30,31 +28,32 @@ impl Table {
         self.table[page_num as usize]
     }
 
-    /// probably useless :(
-    fn set_flags(&mut self, page_num: i32, r: i8, m: i8) {
-        if (r != 1 && r!= 0) || (m != 2 && m!= 0) {
+    pub fn set_flags(&mut self, page_num: i32, r: i8, m: i8) {
+        if (r != 2 && r!= 0) || (m != 1 && m!= 0) {
             dbg!(format!("r = {}, m = {}", r, m));
             panic!("incorrect bit flags");
         }
         self.check_page(page_num);
-        self.table.insert(page_num as usize, r + m);
+        self.table[page_num as usize] = r + m;
     }
 
     pub fn set_read(&mut self, page_num: i32) {
         self.check_page(page_num);
         match self.table[page_num as usize] {
-            1 | 3 => (), // do not modify
-            2 => self.table.insert(page_num as usize, 3), // add read flag
-            _ => self.table.insert(page_num as usize, 0)  // reset corrupted
+            0 => self.table[page_num as usize] = 2,
+            1 => self.table[page_num as usize] = 3, // add read flag
+            2 | 3 => (), // do not modify
+            _ => self.table[page_num as usize] = 2  // reset corrupted
         }
     }
 
     pub fn set_write(&mut self, page_num: i32) {
         self.check_page(page_num);
         match self.table[page_num as usize] {
-            2 | 3 => (), // do not modify
-            1 => self.table.insert(page_num as usize, 3), // add write flag
-            _ => self.table.insert(page_num as usize, 0) // reset corrupted
+            0 => self.table[page_num as usize] = 3,
+            2 => self.table[page_num as usize] = 3, // add write flag
+            1 | 3 => (), // do not modify
+            _ => self.table[page_num as usize] = 3 // reset corrupted
         }
     }
 }
@@ -123,27 +122,27 @@ mod tests {
     #[should_panic]
     fn test_set_flags_incorrect_flags() {
         let mut table = self::Table::init(1024);
-        table.set_flags(0, 2, 1)
+        table.set_flags(0, 1, 2)
     }
 
     #[test]
     fn test_set_flag_r() {
         let mut table = self::Table::init(1024);
-        table.set_flags(0, 1, 0);
-        assert_eq!(1, table.get_page(0));
+        table.set_flags(0, 2, 0);
+        assert_eq!(2, table.get_page(0));
     }
 
     #[test]
     fn test_set_flag_m() {
         let mut table = self::Table::init(1024);
-        table.set_flags(0, 0, 2);
-        assert_eq!(2, table.get_page(0));
+        table.set_flags(0, 0, 1);
+        assert_eq!(1, table.get_page(0));
     }
 
     #[test]
     fn test_set_flag_rm() {
         let mut table = self::Table::init(1024);
-        table.set_flags(0, 1, 2);
+        table.set_flags(0, 2, 1);
         assert_eq!(3, table.get_page(0));
     }
 }

@@ -19,11 +19,10 @@ impl VirtualMemory {
 
     /// check for address out of memory/page bounds
     fn check_addr(&self, addr: i64) {
-        let max_page_idx = self.memory.len() as i64 - 1; // indexed from 0
-        let to_compare = max_page_idx * self.page_size as i64;
+        let to_compare = (self.memory.len() * self.page_size as usize - 1) as i64;
         match addr.cmp(&to_compare) {
             Ordering::Greater => panic!("addr too big"),
-            _ => dbg!(format!("requested addr {} of {}, OK!", addr, to_compare))
+            _ => () //dbg!(format!("requested addr {} of {}, OK!", addr, to_compare))
         };
     }
 
@@ -42,7 +41,7 @@ impl VirtualMemory {
         let page = addr / self.page_size as i64;
         let local_addr = addr - (page * self.page_size as i64);
         self.table.set_write(page as i32);
-        self.memory[page as usize].insert(local_addr as usize, value);
+        self.memory[page as usize][local_addr as usize] = value;
     }
 
     /// reset statistics
@@ -52,5 +51,13 @@ impl VirtualMemory {
 
     pub fn get_table(&self) -> &Table {
         &self.table
+    }
+
+    pub fn pages_count(&self) -> usize {
+        return self.memory.len()
+    }
+
+    pub fn page_size(&self) -> i8 {
+        return self.page_size
     }
 }
