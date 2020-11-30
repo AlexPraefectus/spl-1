@@ -56,6 +56,19 @@ impl Table {
             _ => self.table[page_num as usize] = 3 // reset corrupted
         }
     }
+
+    pub fn reset(&mut self) {
+        let mut new_tbl: Vec<i8> = Vec::new();
+        new_tbl.reserve(self.table.len());
+        for (val) in &self.table {
+            match val {
+                3 => new_tbl.push(1),
+                1 => new_tbl.push(1),
+                _ => new_tbl.push(0)
+            }
+        }
+        self.table = new_tbl;
+    }
 }
 
 pub struct TableIterator<'a> {

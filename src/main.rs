@@ -14,7 +14,7 @@ fn seed(vm: &mut VirtualMemory) {
     let mut rng = rand::thread_rng();
     let pages_count = vm.pages_count();
     let page_size = vm.page_size();
-    for _ in 1 .. pages_count / 2 {
+    for _ in 1 .. pages_count {
         let page = rng.gen_range(0, pages_count);
         let on_page = rng.gen_range(0, page_size);
         let addr = page as i64 * page_size as i64 + on_page as i64;
@@ -35,7 +35,10 @@ fn seed(vm: &mut VirtualMemory) {
 
 fn main() {
     let mut vm = VirtualMemory::init(10, 16);
-    seed(&mut vm);
+    for _ in 1 .. 3 {
+        vm.reset();
+        seed(&mut vm);
+    }
     let mut nru = NRU::init();
     nru.go_through(&vm);
     nru.dbg_print_stats();

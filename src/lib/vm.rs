@@ -46,7 +46,7 @@ impl VirtualMemory {
 
     /// reset statistics
     pub fn reset(&mut self) {
-        self.table = Table::init(self.memory.len() as i32)
+        self.table.reset();
     }
 
     pub fn get_table(&self) -> &Table {
